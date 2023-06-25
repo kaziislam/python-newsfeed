@@ -10,7 +10,7 @@ itsdangerous==2.1.2
 Jinja2==3.1.2
 MarkupSafe==2.1.2
 pycparser==2.21
-PyMySQL==1.0.3
+psycopg2
 python-dotenv
 SQLAlchemy==2.0.15
 typing_extensions==4.6.3
