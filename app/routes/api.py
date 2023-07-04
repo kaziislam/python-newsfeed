@@ -3,6 +3,7 @@ from app.models import User, Post, Comment, Vote
 from app.db import get_db
 from app.utils.auth import login_required
 import sys
+import traceback
 
 bp = Blueprint('api', __name__, url_prefix='/api')
 
@@ -25,12 +26,13 @@ def signup():
         # save in database
         db.add(newUser)
         db.commit()
-    except: 
-        print(sys.exc_info()[0])
-        # insert failed, so send error to frontend
-        db.rollback()
+    except Exception as e:
+        traceback.print_exc() 
+        # print(sys.exc_info()[0])
+        # # insert failed, so send error to frontend
+        # db.rollback()
         return jsonify(message = 'Signup failed'), 500
-    
+       
     # user's session information 
     # This clears any existing session data and creates two new session properties
     session.clear()
