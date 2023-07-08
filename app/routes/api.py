@@ -4,6 +4,7 @@ from app.db import get_db
 from app.utils.auth import login_required
 import sys
 import traceback
+from sqlalchemy.orm.exc import NoResultFound
 
 bp = Blueprint('api', __name__, url_prefix='/api')
 
@@ -26,13 +27,13 @@ def signup():
         # save in database
         db.add(newUser)
         db.commit()
-    except Exception as e:
-        traceback.print_exc() 
-        # print(sys.exc_info()[0])
-        # # insert failed, so send error to frontend
-        # db.rollback()
+    except: 
+        print(sys.exc_info()[0])
+        # insert failed, so send error to frontend
+        db.rollback()
         return jsonify(message = 'Signup failed'), 500
-       
+    
+    
     # user's session information 
     # This clears any existing session data and creates two new session properties
     session.clear()
@@ -53,18 +54,21 @@ def login():
     data = request.get_json()
     db = get_db()
 
+    user = None  # Initialize user variable
     try:
         user = db.query(User).filter(User.email == data['email']).one()
-    except:
-        print(sys.exc_info()[0])
-        return jsonify(message = 'Incorrect credentials'), 400
-    
-    if user.verify_password(data['password']) == False:
-        return jsonify(message = 'Incorrect credentials'), 400
-    session.clear()
-    session['user_id'] = user.id
-    session['loggedIn'] = True
-    return jsonify(id = user.id)
+        if user.verify_password(data['password']) == False:
+                return jsonify(message = 'Incorrect credentials'), 400
+        session.clear()
+        session['user_id'] = user.id
+        session['loggedIn'] = True
+        return jsonify(id = user.id)
+    except NoResultFound:
+        return jsonify(message='Incorrect credentials'), 400
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify(message='An error occurred'), 500    
+
 
 # comment route
 @bp.route('/comments', methods=['POST'])
